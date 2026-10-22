@@ -1,0 +1,19 @@
+:host { display: contents; }
+.auth-wrap { max-width: 460px; margin: 0 auto; padding: max(32px, env(safe-area-inset-top)) 22px 36px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 28px; font-weight: 800; letter-spacing: -.03em; color: var(--ion-color-primary); font-size: 1.2rem; }
+.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--ion-color-primary); color: #fff; font-size: .8rem; letter-spacing: -.04em; }
+.eyebrow { text-transform: uppercase; font-size: .75rem; letter-spacing: .12em; font-weight: 700; color: var(--ion-color-medium); }
+h1 { margin: 10px 0 12px; font-size: 2.2rem; letter-spacing: -.04em; line-height: 1.1; }
+.intro { line-height: 1.6; color: var(--ion-color-medium); margin-bottom: 24px; }
+form { display: grid; gap: 16px; }
+ion-input, ion-select { --background: var(--ion-card-background, white); --border-radius: 12px; }
+.field-error, .feedback { margin: 0; font-size: .9rem; line-height: 1.5; }
+.field-error, .feedback.error { color: var(--ion-color-danger); }
+.feedback { padding: 14px 16px; border-radius: 12px; background: var(--ion-color-light); }
+.feedback.success { border: 1px solid var(--ion-color-success); }
+ion-button[type=submit] { margin: 4px 0 0; min-height: 50px; font-weight: 700; }
+.links { margin-top: 24px; text-align: center; font-size: .95rem; line-height: 1.8; }
+a { color: var(--ion-color-primary); text-underline-offset: 3px; }
+.privacy { display: flex; align-items: flex-start; gap: 12px; font-size: .9rem; line-height: 1.5; }
+.privacy ion-checkbox { margin-top: 3px; min-width: 24px; }
+.small { font-size: .82rem; line-height: 1.5; color: var(--ion-color-medium); }

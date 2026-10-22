@@ -1,0 +1,5 @@
+-- No embedded credentials, password hashes, or production users.
+-- See the runtime demo creation script documented in README.md. It creates
+-- one trainer and three clients through Supabase Auth using a password supplied
+-- via a local environment variable, then inserts schedules and appointments.
+-- This file intentionally remains safe for `supabase db reset` in any project.

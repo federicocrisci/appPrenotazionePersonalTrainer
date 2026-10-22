@@ -1,0 +1,104 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-back-button defaultHref="/app/home" /></ion-buttons>
+    <ion-title>Disponibilità</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <main class="availability-page">
+    <div class="intro">
+      <p class="eyebrow">LA TUA SETTIMANA</p>
+      <h1>Fai spazio alle sessioni.</h1>
+      <p>Definisci gli orari che i clienti possono prenotare. Tutti gli orari di questa pagina sono in <strong>{{ timezone() }}</strong>.</p>
+    </div>
+    @if (error()) { <div class="feedback error" role="alert">{{ error() }} <ion-button fill="clear" (click)="load()" [disabled]="loading() || saving()">Ricarica</ion-button></div> }
+    @if (notice()) { <div class="feedback success" role="status">{{ notice() }}</div> }
+    @if (loading()) {
+      <div class="loading" role="status"><ion-spinner name="crescent" /><span>Caricamento disponibilità…</span></div>
+    }
+    <ion-card id="weekly-form">
+      <ion-card-header><ion-card-title>{{ editingId ? 'Modifica fascia' : 'Aggiungi una fascia' }}</ion-card-title></ion-card-header>
+      <ion-card-content>
+        <form #weeklyForm="ngForm" (ngSubmit)="saveWeekly()">
+          <ion-select label="Giorno della settimana" labelPlacement="stacked" name="weekday" [(ngModel)]="weekday" required>
+            @for (day of days; track day.value) { <ion-select-option [value]="day.value">{{ day.label }}</ion-select-option> }
+          </ion-select>
+          <div class="form-grid">
+            <ion-input label="Dalle" labelPlacement="stacked" type="time" name="startTime" [(ngModel)]="startTime" required />
+            <ion-input label="Alle" labelPlacement="stacked" type="time" name="endTime" [(ngModel)]="endTime" required />
+          </div>
+          <p class="hint">Puoi aggiungere più fasce nello stesso giorno. Gli slot seguono la durata impostata nel <a routerLink="/app/profile">profilo</a>.</p>
+          <ion-button expand="block" type="submit" [disabled]="saving() || loading() || !initialized() || weeklyForm.invalid">
+            {{ saving() ? 'Salvataggio…' : (editingId ? 'Salva modifica' : 'Aggiungi fascia') }}
+          </ion-button>
+          @if (editingId) { <ion-button expand="block" fill="clear" type="button" (click)="resetWeekly()" [disabled]="saving()">Annulla modifica</ion-button> }
+        </form>
+      </ion-card-content>
+    </ion-card>
+    <section aria-labelledby="weekly-heading">
+      <h2 id="weekly-heading">Disponibilità settimanale</h2>
+      <p class="hint">Le modifiche valgono per i nuovi slot. Gli appuntamenti già confermati restano in agenda.</p>
+      @for (day of days; track day.value) {
+        <ion-card class="day-card">
+          <ion-card-header>
+            <ion-card-title>{{ day.label }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            @if (forDay(day.value).length === 0) { <p class="muted">Non disponibile</p> }
+            @else {
+              <ion-list lines="none">
+                @for (row of forDay(day.value); track row.id) {
+                  <ion-item>
+                    <ion-label>{{ row.start_time.slice(0, 5) }} – {{ row.end_time.slice(0, 5) }}</ion-label>
+                    <ion-button slot="end" fill="clear" (click)="edit(row)" [disabled]="saving() || loading()" [attr.aria-label]="'Modifica fascia ' + day.label + ' ' + row.start_time.slice(0, 5)">Modifica</ion-button>
+                    <ion-button slot="end" fill="clear" color="danger" (click)="removeWeekly(row)" [disabled]="saving() || loading()" [attr.aria-label]="'Elimina fascia ' + day.label + ' ' + row.start_time.slice(0, 5)">Elimina</ion-button>
+                  </ion-item>
+                }
+              </ion-list>
+              <ion-button fill="clear" color="medium" (click)="clearDay(day.value)" [disabled]="saving() || loading()">Imposta giorno non disponibile</ion-button>
+            }
+          </ion-card-content>
+        </ion-card>
+      }
+    </section>
+    <ion-card>
+      <ion-card-header><ion-card-title>Assenze e ferie</ion-card-title></ion-card-header>
+      <ion-card-content>
+        <p>Blocca un intervallo senza cambiare la settimana abituale.</p>
+        <form #blockForm="ngForm" (ngSubmit)="addBlock()">
+          <ion-select label="Tipo di blocco" labelPlacement="stacked" name="reason" [(ngModel)]="reason" required>
+            <ion-select-option value="absence">Assenza</ion-select-option>
+            <ion-select-option value="vacation">Ferie</ion-select-option>
+            <ion-select-option value="blocked">Blocco orario</ion-select-option>
+          </ion-select>
+          <ion-checkbox name="allDay" [(ngModel)]="allDay">Intera giornata</ion-checkbox>
+          <div class="form-grid">
+            <ion-input label="Data inizio" labelPlacement="stacked" type="date" name="blockStartDate" [(ngModel)]="blockStartDate" required />
+            <ion-input [label]="allDay ? 'Data fine (inclusa)' : 'Data fine'" labelPlacement="stacked" type="date" name="blockEndDate" [(ngModel)]="blockEndDate" [min]="blockStartDate" required />
+          </div>
+          @if (!allDay) {
+            <div class="form-grid">
+              <ion-input label="Ora inizio" labelPlacement="stacked" type="time" name="blockStartTime" [(ngModel)]="blockStartTime" required />
+              <ion-input label="Ora fine" labelPlacement="stacked" type="time" name="blockEndTime" [(ngModel)]="blockEndTime" required />
+            </div>
+          }
+          <p class="hint">Fuso orario: {{ timezone() }}. Un blocco non cancella gli appuntamenti già confermati: dovrai annullarli prima.</p>
+          <ion-button expand="block" type="submit" [disabled]="saving() || loading() || !initialized() || blockForm.invalid">Aggiungi periodo non disponibile</ion-button>
+        </form>
+      </ion-card-content>
+    </ion-card>
+    <section aria-labelledby="blocks-heading">
+      <h2 id="blocks-heading">Periodi bloccati</h2>
+      @if (!loading() && blocks().length === 0) { <p class="empty">Nessuna assenza o ferie impostata.</p> }
+      @for (block of blocks(); track block.id) {
+        <ion-card>
+          <ion-card-content>
+            <strong>{{ reasonLabel(block.reason) }}</strong>
+            <p>{{ blockLabel(block) }}</p>
+            <ion-button fill="clear" color="danger" (click)="removeBlock(block)" [disabled]="saving() || loading()">Rimuovi blocco</ion-button>
+          </ion-card-content>
+        </ion-card>
+      }
+    </section>
+  </main>
+</ion-content>

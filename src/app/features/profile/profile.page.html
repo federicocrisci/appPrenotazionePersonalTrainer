@@ -1,0 +1,58 @@
+<ion-header class="ion-no-border"><ion-toolbar><ion-title>Il tuo profilo</ion-title></ion-toolbar></ion-header>
+<ion-content>
+  <main class="page-wrap">
+    @if (loading()) {
+      <div class="loading" role="status"><ion-spinner name="crescent" aria-label="Caricamento profilo" /><p>Caricamento profilo…</p></div>
+    } @else {
+      <header class="profile-heading">
+        <div class="avatar" aria-hidden="true">{{ auth.profile()?.first_name?.charAt(0) }}{{ auth.profile()?.last_name?.charAt(0) }}</div>
+        <div><p class="eyebrow">{{ auth.profile()?.role === 'trainer' ? 'Personal Trainer' : 'Cliente' }}</p><h1>{{ auth.profile()?.first_name }} {{ auth.profile()?.last_name }}</h1><p class="email">{{ auth.user()?.email }}</p></div>
+      </header>
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <section class="panel" aria-labelledby="personal-title">
+          <h2 id="personal-title">Dati personali</h2>
+          <div class="form-grid">
+            <ion-input label="Nome" labelPlacement="stacked" fill="outline" formControlName="firstName" autocomplete="given-name" [maxlength]="80" />
+            <ion-input label="Cognome" labelPlacement="stacked" fill="outline" formControlName="lastName" autocomplete="family-name" [maxlength]="80" />
+            <ion-input label="Telefono (facoltativo)" labelPlacement="stacked" fill="outline" type="tel" formControlName="phone" autocomplete="tel" [maxlength]="30" />
+            <ion-input label="URL foto HTTPS (facoltativo)" labelPlacement="stacked" fill="outline" type="url" formControlName="avatarUrl" [maxlength]="2048" />
+          </div>
+          <p class="hint">Per la foto usa un’immagine di tua proprietà con un URL HTTPS pubblico. Non inserire dati sanitari o informazioni sensibili.</p>
+          @if ((form.controls.firstName.touched && form.controls.firstName.invalid) || (form.controls.lastName.touched && form.controls.lastName.invalid)) { <p class="field-error">Nome e cognome sono obbligatori, con un massimo di 80 caratteri ciascuno.</p> }
+          @if (form.controls.phone.touched && form.controls.phone.invalid) { <p class="field-error">Inserisci un numero di telefono valido, massimo 30 caratteri.</p> }
+          @if (form.controls.avatarUrl.touched && form.controls.avatarUrl.invalid) { <p class="field-error">La foto deve avere un URL HTTPS valido, massimo 2048 caratteri.</p> }
+        </section>
+        @if (auth.profile()?.role === 'trainer') {
+          <section class="panel" aria-labelledby="trainer-title">
+            <h2 id="trainer-title">Il tuo lavoro</h2>
+            <p class="hint">Queste informazioni, con il tuo nome e la foto, sono visibili ai clienti autenticati.</p>
+            <div class="form-grid">
+              <ion-textarea class="full" label="Breve descrizione" labelPlacement="stacked" fill="outline" formControlName="bio" [maxlength]="1000" [autoGrow]="true" [rows]="3" />
+              <ion-input label="Località" labelPlacement="stacked" fill="outline" formControlName="location" [maxlength]="120" />
+              <ion-input label="Palestra o studio (facoltativo)" labelPlacement="stacked" fill="outline" formControlName="studio" [maxlength]="120" />
+              <ion-select label="Durata sessione" labelPlacement="stacked" fill="outline" formControlName="sessionDuration" interface="popover">
+                <ion-select-option [value]="30">30 minuti</ion-select-option><ion-select-option [value]="45">45 minuti</ion-select-option><ion-select-option [value]="60">60 minuti</ion-select-option><ion-select-option [value]="90">90 minuti</ion-select-option>
+              </ion-select>
+              <ion-select label="Cancellazione cliente" labelPlacement="stacked" fill="outline" formControlName="cancellationHours" interface="popover">
+                <ion-select-option [value]="6">Fino a 6 ore prima</ion-select-option><ion-select-option [value]="12">Fino a 12 ore prima</ion-select-option><ion-select-option [value]="24">Fino a 24 ore prima</ion-select-option>
+              </ion-select>
+              <ion-input class="full" label="Timezone degli orari settimanali" labelPlacement="stacked" fill="outline" formControlName="timezone" placeholder="Europe/Rome" />
+            </div>
+            <p class="hint">Usa un identificatore IANA, per esempio Europe/Rome. La durata, la timezone e il limite di cancellazione si applicano alle operazioni successive; le prenotazioni esistenti mantengono gli istanti già confermati.</p>
+            @if (form.controls.timezone.touched && form.controls.timezone.invalid) { <p class="field-error">Inserisci una timezone valida, per esempio Europe/Rome.</p> }
+            @if (form.controls.bio.touched && form.controls.bio.invalid) { <p class="field-error">La descrizione può contenere al massimo 1000 caratteri.</p> }
+            <ion-button fill="outline" routerLink="/app/availability" expand="block">Gestisci disponibilità e assenze</ion-button>
+          </section>
+        }
+        @if (error()) { <div class="feedback error" role="alert">{{ error() }}</div> }
+        @if (loadFailed()) { <ion-button fill="outline" expand="block" type="button" (click)="load()">Riprova a caricare il profilo</ion-button> }
+        @if (success()) { <div class="feedback success" role="status">{{ success() }}</div> }
+        <ion-button expand="block" type="submit" [disabled]="saving() || loading() || loadFailed()">@if (saving()) { <ion-spinner name="crescent" aria-label="Salvataggio in corso" /> } @else { Salva profilo }</ion-button>
+      </form>
+      <section class="account-links" aria-label="Account e informazioni">
+        <a routerLink="/privacy">Informativa Privacy (bozza)</a><a routerLink="/terms">Termini e Condizioni (bozza)</a>
+        <ion-button fill="clear" color="danger" (click)="logout()" [disabled]="saving()">Esci dall’account</ion-button>
+      </section>
+    }
+  </main>
+</ion-content>
